@@ -1,0 +1,107 @@
+:root {
+    --background-color-light: #f5f5f5;
+    --text-color-light: #333333;
+    --background-color-dark: #111111;
+    --text-color-dark: #ffffff;
+    --card-color-dark: #222;
+    --card-color-light: #ffffff;
+
+    --background-color: var(--background-color-light);
+    --text-color: var(--text-color-light);
+    --card-color: var(--card-color-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: var(--background-color-dark);
+        --text-color: var(--text-color-dark);
+        --card-color: var(--card-color-dark);
+    }
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.bold-font {
+    font-weight: 500;
+}
+
+.radius {
+    border-radius: 20px !important;
+}
+
+.uk-card-default {
+    background-color: var(--card-color) !important;
+    color: var(--text-color) !important;
+}
+
+.marginLeft {
+    margin-left: -5vh;
+}
+
+.container {
+    background-color: var(--card-color) !important;
+    box-sizing: border-box;
+    max-height: 600px;
+    max-width: 400px;
+    padding: 56px 56px 56px 0;
+    position: absolute;
+    top: 383px;
+    transform: matrix(1, 0, 0, 1, -200, -300);
+    margin: 0;
+    left: 50%;
+}
+
+.uk-card-default {
+    box-shadow: none !important;
+}
+
+.uk-card-header {
+    padding: 0 0 20px 0px !important;
+}
+
+.theme {
+    background-color: var(--card-color);
+    color: var(--text-color) !important;
+}
+
+.info {
+    border-left: 15px;
+}
+
+.company {
+    font-size: 14.4px !important;
+    font-weight: light !important;
+    white-space: nowrap;
+}
+
+.location {
+    font-size: 14.4px !important;
+    font-weight: light !important;
+}
+
+.previous {
+    padding-left: 30px;
+    font-weight: lighter;
+    font-size: 14px;
+}
+
+.button-container {
+    margin-bottom: -10vh !important;
+    display: flex;
+    justify-content: center;
+}
+
+.resume-button,
+.contact-button {
+    margin-right: 10px !important;
+    background-color: var(--button-color);
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
