@@ -11,9 +11,12 @@ module.exports = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       backgroundColor: {
-        "mainTheme": '#222222',
-        "cardTheme": '#333333',
-        "inlineTheme": '#444444',
+        "dark-MainTheme": '#222222',
+        "dark-cardTheme": '#333333',
+        "dark-inlineTheme": '#444444',
+        "light-MainTheme": '#dddddd',
+        "light-cardTheme": '#cccccc',
+        "light-inlineTheme": '#bbbbbb',
         "underLine": 'rgba(98, 164, 255, 1)',
       },
       boxShadow: {
