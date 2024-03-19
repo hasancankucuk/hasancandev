@@ -1,5 +1,4 @@
 import React from "react";
-import "../../app/globals.css"
 
 interface CardProps {
   color: string;

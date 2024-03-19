@@ -1,5 +1,6 @@
-import { ProjectTypes } from "@/models/projectType";
-import { ProjectsCard } from "@/shared/projects/projectsCard";
+import { ProjectTypes } from "../../models/projectType"
+import { ProjectsCard } from "../../shared/projects/projectsCard"
+
 
 interface ProjectSectionProps {
     title: string,

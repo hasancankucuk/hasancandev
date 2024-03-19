@@ -1,17 +1,16 @@
-import Card from "@/components/card/card";
+import Card from "../../components/card/card";
 
 interface TechStackProps {
     stack?: string[];
 }
 
 export default function TechStack(props: TechStackProps) {
-    // Group the stack items into pairs
     const stackItems = props.stack || [];
 
     return (
         <div className="mx-2">
             <Card height="xs:h-30" color="bg-cardTheme" margin="my-4">
-                <h2 className="text-white text-lg font-semibold px-4 py-2">Tech Stack</h2>
+            <h2 className="text-white text-lg font-semibold px-4 py-2">Tech Stack</h2>
                 <div className="flex flex-wrap items-center lg:ml-3 md:ml-2 sm:ml-1 mb-2">
                     {stackItems.map((item, index) => (
                         <div key={index} className="sm:px-2 md:px-1 lg:px-2 my-1">

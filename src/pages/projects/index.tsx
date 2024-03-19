@@ -1,8 +1,9 @@
-import Card from "@/components/card/card";
-import ProjectSection from "@/components/projects/projectSection";
-import { ProjectTypes } from "@/models/projectType";
+import Card from "../../components/card/card"
+import ProjectSection from "../../components/projects/projectSection"
+import { ProjectTypes } from "../../models/projectType"
 
-export default function Projects() {
+
+export const Projects = () => {
     return (
         <Card color="bg-mainTheme" margin="mx-auto my-2 " maxWidth="max-md:max-w-[90%] md:max-w-[40%] lg:max-w-[40%] max-sm:max-w-[90%]">
             <ProjectSection type={ProjectTypes.Company} title="Projects" summary="Here is a showcase of the projects I've developed during my tenure at various workplaces. Please note that images may vary." />

@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { collection, getDocs, getFirestore, query, orderBy, limit, where, DocumentData, QueryDocumentSnapshot, Query, doc, getDoc, DocumentSnapshot } from "firebase/firestore";
-import { Projects } from "@/models/projectInfoType";
+import { Projects } from "../models/projectInfoType";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBnusPSe0_c4212JAXPjEyIH51GyRwEf7M",
