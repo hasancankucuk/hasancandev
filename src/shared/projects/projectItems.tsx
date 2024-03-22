@@ -13,7 +13,6 @@ interface ProjectItemsProps {
 
 const ProjectItems: React.FC<ProjectItemsProps> = (props) => {
     const [projects, setProjects] = useState<QueryDocumentSnapshot<Projects>[]>([]);
-
     useEffect(() => {
         const fetchProjects = async () => {
             try {
@@ -35,7 +34,7 @@ const ProjectItems: React.FC<ProjectItemsProps> = (props) => {
                     <div key={index} className="mx-2">
                         {/* Use Link from React Router */}
                         <Link to={`/projects/${projectData.id}`}>
-                            <Card height="xs:h-30" color="bg-light-inlineTheme dark:bg-dark-inlineTheme" margin="my-4" hoverEnabled={true}>
+                            <Card testId="shared-projectItems" height="xs:h-30" color="bg-light-inlineTheme dark:bg-dark-inlineTheme" margin="my-4" hoverEnabled={true}>
                                 <div className="flex items-center">
                                     {projectData.icon && (
                                         <img

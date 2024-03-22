@@ -15,13 +15,10 @@ export const ArticleDetail = () => {
       }
 
       fetch();
-    }, [id])
- 
-    
+    }, [id]);
 
     return (
-        
-      <Card color="bg-light-MainTheme dark:bg-dark-MainTheme" margin="mx-auto my-2 " maxWidth="min-h-dvh max-md:max-w-[90%] md:max-w-[40%] lg:max-w-[40%] max-sm:max-w-[90%]">
+      <Card testId='projectDetails' color="bg-light-MainTheme dark:bg-dark-MainTheme" margin="mx-auto my-2 " maxWidth="min-h-dvh max-md:max-w-[90%] md:max-w-[40%] lg:max-w-[40%] max-sm:max-w-[90%]">
           <div className="rounded-lg flex flex-col justify-center sm:flex-row items-center px-10 py-5">
               <img src={projectData?.icon} alt="profile-picture" className="w-36 h-36 object-cover rounded-full order-1" />
           </div>

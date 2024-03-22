@@ -20,7 +20,8 @@ module.exports = {
         "underLine": 'rgba(98, 164, 255, 1)',
       },
       boxShadow: {
-        '3xl': '0 0 5px 0 rgba(255,255,255,0.5)',
+        '3xl-dark': '0 0 5px 0 rgba(255,255,255,0.5)',
+        '3xl-light': '0 0 5px 0 rgba(0,0,0,0.5)',
       }
     },
   },
