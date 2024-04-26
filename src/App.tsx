@@ -10,7 +10,7 @@ import { ArticleDetail } from './pages/projectDetails';
 function App() {
   return (
     <BrowserRouter>
-      {/* <Navbar /> */}
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
