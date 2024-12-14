@@ -1,3 +1,4 @@
+import React from "react";
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import { Link } from "react-router-dom";
 import Card from "../../components/card/card";

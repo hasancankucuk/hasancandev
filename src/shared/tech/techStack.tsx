@@ -1,3 +1,4 @@
+import React from "react";
 import Card from "../../components/card/card";
 
 interface TechStackProps {
@@ -15,7 +16,7 @@ export default function TechStack(props: TechStackProps) {
                         <h2 className="text-black dark:text-white text-lg font-semibold px-4 py-2">Tech Stack</h2>
                         <div className="flex flex-wrap gap-3 items-center mx-3 my-3">
                             {stackItems.map((item, index) => (
-                                <Card testId="shared-techStackItem" color="bg-light-inlineTheme dark:bg-dark-inlineTheme" maxWidth="w-fit" margin="">
+                                <Card key={index} testId="shared-techStackItem" color="bg-light-inlineTheme dark:bg-dark-inlineTheme" maxWidth="w-fit" margin="">
                                     <div className="text-black dark:text-white px-4 py-2">
                                         <h2 className="text-xs">{item}</h2>
                                     </div>

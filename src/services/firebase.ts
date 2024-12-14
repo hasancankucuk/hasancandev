@@ -1,6 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { collection, getDocs, getFirestore, query, orderBy, limit, where, DocumentData, QueryDocumentSnapshot, Query, doc, getDoc, DocumentSnapshot } from "firebase/firestore";
+import { collection, getDocs, getFirestore, query, orderBy, limit, where, DocumentData, QueryDocumentSnapshot, Query, doc, getDoc } from "firebase/firestore";
 import { Projects } from "../models/projectInfoType";
 
 const firebaseConfig = {

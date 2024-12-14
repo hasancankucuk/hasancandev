@@ -1,3 +1,4 @@
+import React from "react"
 import Card from "../../components/card/card"
 import ProjectSection from "../../components/projects/projectSection"
 import { ProjectTypes } from "../../models/projectType"

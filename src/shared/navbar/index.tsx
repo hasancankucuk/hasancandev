@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { BeakerIcon, HomeIcon, RectangleStackIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import React, { useState } from "react";
+import { HomeIcon, RectangleStackIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import { Tooltip } from "../tooltip/tooltip";
 
@@ -22,7 +22,7 @@ export default function Navbar() {
 
                     <div className="absolute inset-y-0 left-0 flex items-center">
                         <div className="flex space-x-4">
-                            {navItems.map((item: any) => (
+                            {navItems.map((item) => (
                                 <Link key={item.id} to={item.link} onClick={() => handleNavItemClick(item.id)}>
                                     <div className={`group cursor-pointer relative ${activeNavItem === item.id ? 'active' : ''}`}>
                                         {item.icon}
