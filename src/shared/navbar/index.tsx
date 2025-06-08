@@ -38,9 +38,9 @@ export default function Navbar() {
 
 
                     <div className="text-black dark:text-white absolute right-0">
-                        <a href="https://read.cv/hasancankucuk" target="_blank" rel="noopener noreferrer">
+                        <a href="https://322358309544402944.hello.cv/" target="_blank" rel="noopener noreferrer">
                             <button className="bg-light-inlineTheme dark:bg-dark-inlineTheme hover:bg-light-cardTheme dark:hover:bg-dark-cardTheme  py-1 px-2 rounded-lg">
-                                Read.cv
+                                hello.cv
                             </button>
                         </a>
                     </div>
