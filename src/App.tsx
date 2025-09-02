@@ -13,7 +13,7 @@ function App() {
 
   const Fingerprint = () => {
     SetWorkspaceId("xufiL2pCxPiOpPWey37Jg3rLtwq7CJlnaFlEpljlXzg");
-    SetApiKey("nb74lKdOnVQYFJVaKU2X4EOcPIIWCvDh7bF__H6agy0");
+    SetApiKey("zNVFnpZUsdoppmI1MHDr9qAKIN6iFdWqXUbZTgtnEtI");
     FingerprintSDK().then((result) => {
       // console.log('Fingerprint:', result);
     });
