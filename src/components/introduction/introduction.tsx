@@ -15,7 +15,7 @@ export default function Introduction() {
                 <div className="rounded-lg flex flex-col justify-center sm:flex-row items-center px-10 py-10">
                     <div className="sm:w-full sm:mr-6 order-2 sm:order-1 my-5 text-slate-100">
                         <h4 className="text-black dark:text-white block mb-2 font-sans text-3xl antialiased font-semibold leading-snug tracking-normal">
-                            Hasan Can Küçük
+                            Can Küçük
                         </h4>
                         <p className=" text-black dark:text-white block font-sans text-base antialiased font-medium leading-relaxed bg-clip-text bg-gradient-to-tr from-blue-gray-600 to-blue-gray-400">
                             📍 Now settled in Berlin, with my bags unpacked and ready to embark on my next professional journey.
