@@ -15,7 +15,7 @@ function App() {
     SetWorkspaceId("xufiL2pCxPiOpPWey37Jg3rLtwq7CJlnaFlEpljlXzg");
     SetApiKey("zNVFnpZUsdoppmI1MHDr9qAKIN6iFdWqXUbZTgtnEtI");
     FingerprintSDK().then((result) => {
-      // console.log('Fingerprint:', result);
+      console.log('Fingerprint:', result);
     });
   }
 
