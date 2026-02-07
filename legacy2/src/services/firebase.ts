@@ -1,14 +1,14 @@
 import { initializeApp } from "firebase/app";
-import { collection, getDocs, getFirestore, query, orderBy, limit, where, DocumentData, QueryDocumentSnapshot, Query, doc, getDoc } from "firebase/firestore";
+import { DocumentData, Query, QueryDocumentSnapshot, collection, doc, getDoc, getDocs, getFirestore, limit, orderBy, query, where } from "firebase/firestore";
 import { Projects } from "../models/projectInfoType";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBnusPSe0_c4212JAXPjEyIH51GyRwEf7M",
-    authDomain: "hasancandev-aa791.firebaseapp.com",
-    databaseURL: "https://hasancandev-aa791-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "hasancandev-aa791",
-    storageBucket: "hasancandev-aa791.appspot.com",
-    messagingSenderId: "639302079927",
+    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+    databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL,
+    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
     appId: "1:639302079927:web:7311b6325ab783ac268432",
     measurementId: "G-7R2SHBH7KE"
 };
@@ -45,7 +45,7 @@ async function fetchById(id: string): Promise<Projects | null> {
     try {
         const docRef = doc(db, "projects", id);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists()) {
             const projectData = docSnap.data() as Projects;
             return projectData;
@@ -58,11 +58,11 @@ async function fetchById(id: string): Promise<Projects | null> {
     }
 }
 
-async function fetchAboutData(): Promise< DocumentData | null> {
+async function fetchAboutData(): Promise<DocumentData | null> {
     try {
         const docRef = doc(db, "about", "KZek6J2rrpd84XDSldpy");
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists()) {
             const aboutData = docSnap.data();
             return aboutData;
@@ -75,4 +75,5 @@ async function fetchAboutData(): Promise< DocumentData | null> {
     }
 }
 
-export { fetchData, fetchById, fetchAboutData };
+export { fetchAboutData, fetchById, fetchData };
+
