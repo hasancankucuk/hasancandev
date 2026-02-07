@@ -46,7 +46,7 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.minDistance = 0.5;
 controls.maxDistance = 10;
-controls.minPolarAngle = Math.PI / 15;
+controls.minPolarAngle = Math.PI / 4; // Prevent looking from below (45 degrees from top)
 controls.maxPolarAngle = Math.PI / 1.5;
 controls.autoRotate = false;
 controls.autoRotateSpeed = 0.2;
@@ -128,8 +128,11 @@ let chairInitialRotation = null;
 let isHoveringChair = false;
 let chairRotationY = 0;
 
+let clockObject = null;
 let hourHand = null;
 let minuteHand = null;
+let hourHandInitialRotation = null;
+let minuteHandInitialRotation = null;
 
 function onClick(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
