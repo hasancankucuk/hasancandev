@@ -4,27 +4,13 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './style.css';
 
 const scene = new THREE.Scene();
-// Create a gradient background (warm beige to soft blue-gray)
-const canvas = document.createElement('canvas');
-canvas.width = 2;
-canvas.height = 256;
-const context = canvas.getContext('2d');
-const gradient = context.createLinearGradient(0, 0, 0, 256);
-gradient.addColorStop(0, '#e8dcc4'); // Warm beige top
-gradient.addColorStop(0.5, '#c9d6df'); // Soft blue-gray middle
-gradient.addColorStop(1, '#a8b5c0'); // Slightly darker bottom
-context.fillStyle = gradient;
-context.fillRect(0, 0, 2, 256);
-const texture = new THREE.CanvasTexture(canvas);
-scene.background = texture;
+const backgroundColor = 0xD8D8E8;
+scene.background = new THREE.Color(backgroundColor);
+scene.fog = new THREE.FogExp2(backgroundColor, 0.05);
 
-const camera = new THREE.PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-);
-camera.position.set(0, 1, 5);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(1, 0.5, 1);
+camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -44,10 +30,12 @@ container.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
-controls.minDistance = 0.5;
-controls.maxDistance = 10;
-controls.minPolarAngle = Math.PI / 4; // Prevent looking from below (45 degrees from top)
-controls.maxPolarAngle = Math.PI / 1.5;
+controls.minDistance = 1;
+controls.maxDistance = 5;
+controls.minAzimuthAngle = -Math.PI / 10;
+controls.maxAzimuthAngle = Math.PI / 5;
+controls.minPolarAngle = Math.PI / 4;
+controls.maxPolarAngle = Math.PI / 2;
 controls.autoRotate = false;
 controls.autoRotateSpeed = 0.2;
 
@@ -62,37 +50,37 @@ function onMouseMove(event) {
 window.addEventListener('mousemove', onMouseMove);
 
 const hemisphereLight = new THREE.HemisphereLight(
-    0xffd000, // sky color
-    0x99d6ea, // ground color
+    0xebf4ff,
+    0xffffff,
     0.6
 );
 scene.add(hemisphereLight);
 
-const mainLight = new THREE.DirectionalLight(0xfff4e6, 1.2);
-mainLight.position.set(5, 8, 5);
-mainLight.castShadow = true;
-mainLight.shadow.mapSize.width = 2048;
-mainLight.shadow.mapSize.height = 2048;
-mainLight.shadow.camera.near = 0.5;
-mainLight.shadow.camera.far = 50;
-scene.add(mainLight);
+const sunLight = new THREE.DirectionalLight(0xffeeb1, 2.5);
+sunLight.position.set(5, 3, 5);
+sunLight.castShadow = true;
 
-const fillLight = new THREE.DirectionalLight(0xe6f3ff, 0.4);
-fillLight.position.set(-5, 3, -3);
-scene.add(fillLight);
+sunLight.shadow.mapSize.width = 1024;
+sunLight.shadow.mapSize.height = 1024;
+sunLight.shadow.bias = -0.00001;
+sunLight.shadow.normalBias = 0.02;
+scene.add(sunLight);
 
-const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
-rimLight.position.set(0, 3, -8);
-scene.add(rimLight);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+scene.add(ambientLight);
 
-// Add ground plane
-const groundGeometry = new THREE.PlaneGeometry(20, 20);
-const groundMaterial = new THREE.ShadowMaterial({
-    opacity: 0.3
+
+
+const groundGeometry = new THREE.PlaneGeometry(20, 20, 100, 100);
+const groundMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    side: THREE.FrontSide,
+    roughness: 0.5,
+
 });
 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-ground.rotation.x = -Math.PI / 2; // Rotate to be horizontal
-ground.position.y = -0.5; // Position below the model
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -1;
 ground.receiveShadow = true;
 scene.add(ground);
 
@@ -147,11 +135,13 @@ function onClick(event) {
             const clickedObject = intersects[0].object;
 
             if (clickedObject.name && clickedObject.name.toLowerCase().includes('mail')) {
-                window.location.href = 'mailto:kckhasancan@gmail.com';
+                window.location.href = import.meta.env.VITE_MAIL;
             } else if (clickedObject.name && clickedObject.name.toLowerCase().includes('linkedin')) {
-                window.open('https://www.linkedin.com/in/hasancankucuk/', '_blank');
+                window.open(import.meta.env.VITE_LINKEDIN, '_blank');
             } else if (clickedObject.name && clickedObject.name.toLowerCase().includes('github')) {
-                window.open('https://github.com/hasancankucuk', '_blank');
+                window.open(import.meta.env.VITE_GITHUB, '_blank');
+            } else if (clickedObject.name && clickedObject.name.toLowerCase().includes('cv')) {
+                window.open(import.meta.env.VITE_CV, '_blank');
             }
         }
     }
@@ -170,10 +160,11 @@ loader.load(
 
         const maxDim = Math.max(size.x, size.y, size.z);
         const scale = 2 / maxDim;
-        model.scale.multiplyScalar(scale);
+        model.scale.setScalar(scale);
 
-        model.position.sub(center.multiplyScalar(scale));
-
+        model.position.x = -center.x * scale;
+        model.position.z = -center.z * scale;
+        model.position.y = -box.min.y * scale - 1;
         let lightsFound = 0;
         const textureLoader = new THREE.TextureLoader();
 
@@ -205,6 +196,24 @@ loader.load(
             if (child.isMesh) {
                 child.castShadow = true;
                 child.receiveShadow = true;
+
+                if (child.material) {
+                    const materialName = child.material.name ? child.material.name.toLowerCase() : '';
+                    const objectName = child.name ? child.name.toLowerCase() : '';
+
+                    if (materialName.includes('wood') ||
+                        objectName.includes('floor') ||
+                        objectName.includes('table') ||
+                        objectName.includes('desk') ||
+                        objectName.includes('shelf') ||
+                        objectName.includes('cabinet') ||
+                        objectName.includes('drawer')) {
+
+                        child.material.roughness = 10.0;
+                        child.material.metalness = 0.0;
+                        child.material.needsUpdate = true;
+                    }
+                }
 
                 if (child.name) {
                     console.log(child.name)
@@ -254,11 +263,7 @@ loader.load(
         });
 
         planeMeshes.sort((a, b) => b.position.y - a.position.y);
-        const potentialFrames = planeMeshes.filter(item => item.position.y > 0.5);
-
-        // Initialize clock hands to current time
         updateClockHands();
-
         scene.add(model);
     },
     (progress) => {
@@ -283,7 +288,7 @@ function updateClockHands() {
     const DEG_TO_RAD = Math.PI / 180;
 
     minuteHand.rotation.x = -(minuteAngle * DEG_TO_RAD);
-    hourHand.rotation.y = -(hourAngle * DEG_TO_RAD);
+    hourHand.rotation.x = -(hourAngle * DEG_TO_RAD);
 }
 
 function animate() {
@@ -309,10 +314,7 @@ function animate() {
         stem.mesh.rotation.z = stem.initialRotation.z + swayZ;
     });
 
-    // Update clock hands to current time
     updateClockHands();
-
-
 
     if (model) {
         raycaster.setFromCamera(mouse, camera);
