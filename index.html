@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Hasan Can - Interactive 3D Portfolio">
+  <meta name="author" content="Hasan Can">
+  <title>Hasan Can - 3D Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loader-container">
+      <div class="loader"></div>
+      <p class="loading-text">Loading...</p>
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <p id="progress-text" class="progress-percentage">0%</p>
+    </div>
+  </div>
+
+  <!-- Main Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Info Overlay -->
+  <div class="info-overlay">
+    <h1 class="title">Hasan Can</h1>
+    <div class="controls-hint">
+      <p>🖱️ Drag to rotate • Scroll to zoom </p>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

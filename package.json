@@ -1,0 +1,25 @@
+{
+    "name": "hasancandev-portfolio",
+    "version": "1.0.0",
+    "description": "Interactive 3D portfolio website with Three.js",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "keywords": [
+        "threejs",
+        "3d",
+        "portfolio",
+        "webgl"
+    ],
+    "author": "Hasan Can",
+    "license": "MIT",
+    "devDependencies": {
+        "vite": "^5.0.0"
+    },
+    "dependencies": {
+        "three": "^0.160.0"
+    }
+}
