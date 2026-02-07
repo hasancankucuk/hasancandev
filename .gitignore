@@ -47,3 +47,6 @@ coverage
 *.temp
 .temp/
 .tmp/
+
+# Large assets (use LFS or external host)
+public/hasancandev.glb
