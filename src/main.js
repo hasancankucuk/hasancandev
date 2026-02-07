@@ -33,7 +33,7 @@ controls.dampingFactor = 0.05;
 controls.minDistance = 1;
 controls.maxDistance = 5;
 controls.minAzimuthAngle = -Math.PI / 10;
-controls.maxAzimuthAngle = Math.PI / 5;
+controls.maxAzimuthAngle = Math.PI / 2.5;
 controls.minPolarAngle = Math.PI / 4;
 controls.maxPolarAngle = Math.PI / 2;
 controls.autoRotate = false;
@@ -88,6 +88,25 @@ const loadingManager = new THREE.LoadingManager();
 const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
 const loadingScreen = document.getElementById('loading-screen');
+const loadingMessage = document.getElementById('loading-message');
+
+const loadingMessages = [
+    "Tidying up the table...",
+    "Throwing out the trash...",
+    "Arranging the books...",
+    "Feeding the cats...",
+    "Applying final touches...",
+    "Brewing coffee...",
+    "Dusting off the shelves..."
+];
+
+let messageIndex = 0;
+const messageInterval = setInterval(() => {
+    messageIndex = (messageIndex + 1) % loadingMessages.length;
+    if (loadingMessage) {
+        loadingMessage.textContent = loadingMessages[messageIndex];
+    }
+}, 2000);
 
 loadingManager.onProgress = (url, loaded, total) => {
     const progress = (loaded / total) * 100;
@@ -98,6 +117,7 @@ loadingManager.onProgress = (url, loaded, total) => {
 loadingManager.onLoad = () => {
     setTimeout(() => {
         loadingScreen.classList.add('hidden');
+        clearInterval(messageInterval);
     }, 500);
 };
 
@@ -133,6 +153,7 @@ function onClick(event) {
 
         if (intersects.length > 0) {
             const clickedObject = intersects[0].object;
+            console.log(clickedObject);
 
             if (clickedObject.name && clickedObject.name.toLowerCase().includes('mail')) {
                 window.location.href = import.meta.env.VITE_MAIL;
