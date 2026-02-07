@@ -4,7 +4,19 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './style.css';
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x99d6ea);
+// Create a gradient background (warm beige to soft blue-gray)
+const canvas = document.createElement('canvas');
+canvas.width = 2;
+canvas.height = 256;
+const context = canvas.getContext('2d');
+const gradient = context.createLinearGradient(0, 0, 0, 256);
+gradient.addColorStop(0, '#e8dcc4'); // Warm beige top
+gradient.addColorStop(0.5, '#c9d6df'); // Soft blue-gray middle
+gradient.addColorStop(1, '#a8b5c0'); // Slightly darker bottom
+context.fillStyle = gradient;
+context.fillRect(0, 0, 2, 256);
+const texture = new THREE.CanvasTexture(canvas);
+scene.background = texture;
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -34,6 +46,7 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.minDistance = 0.5;
 controls.maxDistance = 10;
+controls.minPolarAngle = Math.PI / 15;
 controls.maxPolarAngle = Math.PI / 1.5;
 controls.autoRotate = false;
 controls.autoRotateSpeed = 0.2;
@@ -72,6 +85,17 @@ const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
 rimLight.position.set(0, 3, -8);
 scene.add(rimLight);
 
+// Add ground plane
+const groundGeometry = new THREE.PlaneGeometry(20, 20);
+const groundMaterial = new THREE.ShadowMaterial({
+    opacity: 0.3
+});
+const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+ground.rotation.x = -Math.PI / 2; // Rotate to be horizontal
+ground.position.y = -0.5; // Position below the model
+ground.receiveShadow = true;
+scene.add(ground);
+
 const loadingManager = new THREE.LoadingManager();
 const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
@@ -104,11 +128,8 @@ let chairInitialRotation = null;
 let isHoveringChair = false;
 let chairRotationY = 0;
 
-let clockObject = null;
 let hourHand = null;
 let minuteHand = null;
-let hourHandInitialRotation = null;
-let minuteHandInitialRotation = null;
 
 function onClick(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
