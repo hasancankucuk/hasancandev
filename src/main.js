@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './style.css';
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0a0f);
+scene.background = new THREE.Color(0x99d6ea);
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -49,8 +49,8 @@ function onMouseMove(event) {
 window.addEventListener('mousemove', onMouseMove);
 
 const hemisphereLight = new THREE.HemisphereLight(
-    0xffffff, // sky color
-    0x444444, // ground color
+    0xffd000, // sky color
+    0x99d6ea, // ground color
     0.6
 );
 scene.add(hemisphereLight);
@@ -136,7 +136,7 @@ function onClick(event) {
 window.addEventListener('click', onClick);
 
 loader.load(
-    '/public/hasancandev.glb',
+    '/hasancandev.glb',
     (gltf) => {
         model = gltf.scene;
 
@@ -183,6 +183,7 @@ loader.load(
                 child.receiveShadow = true;
 
                 if (child.name) {
+                    console.log(child.name)
                     if (child.name === 'Image1') {
                         child.material = new THREE.MeshStandardMaterial({
                             map: devilEyeTexture,
