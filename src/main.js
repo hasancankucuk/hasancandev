@@ -70,7 +70,6 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
 scene.add(ambientLight);
 
 
-
 const groundGeometry = new THREE.PlaneGeometry(20, 20, 100, 100);
 const groundMaterial = new THREE.MeshStandardMaterial({
     color: 0xffffff,
