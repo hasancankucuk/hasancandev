@@ -86,12 +86,15 @@ class App {
             hemisphere: null,
             sun: null,
             ambient: null,
-            sphere: null
+            sphere: {
+                light: null,
+                glowLight: null
+            }
         };
 
         this.groundMaterial = null;
 
-        this.isDarkMode = localStorage.getItem('theme') !== 'dark';
+        this.isDarkMode = localStorage.getItem('theme') !== 'light';
 
         this.init();
     }
@@ -237,13 +240,15 @@ class App {
                 this.sphereMesh.material.emissive.setHex(0xffaa33);
                 this.sphereMesh.material.emissiveIntensity = 0.5;
                 if (this.lights.sphere) {
-                    this.lights.sphere.intensity = 1;
+                    this.lights.sphere.glowLight.intensity = 1;
+                    this.lights.sphere.light.intensity = 0.5
                 }
             } else {
                 this.sphereMesh.material.emissive.setHex(0x000000);
                 this.sphereMesh.material.emissiveIntensity = 0;
                 if (this.lights.sphere) {
-                    this.lights.sphere.intensity = 0;
+                    this.lights.sphere.glowLight.intensity = 0;
+                    this.lights.sphere.light.intensity = 0;
                 }
             }
         }
@@ -321,45 +326,49 @@ class App {
                 if (lowerName === 'hourhand') this.clockHands.hour = child;
                 if (lowerName === 'minutehand') this.clockHands.minute = child;
 
-                if (child.name === 'Sphere001' || child.name === 'Sphere.001') {
-                    this.sphereMesh = child;
+                if (child.isMesh) {
+                    if (child.name === 'Sphere001') {
+                        this.sphereMesh = child;
+                        let light = new THREE.DirectionalLight(0xff0000, 0.5);
+                        light.position.set(0, 0, 0);
+                        child.add(light, new THREE.AmbientLight(0xff0000, 0.5));
+                        this.lights.sphere.light = light;
 
-                    const sphereLight = new THREE.PointLight(0xffaa33, 0, 8);
-                    sphereLight.distance = 1;
-                    sphereLight.decay = 1;
-                    child.add(sphereLight);
-                    this.lights.sphere = sphereLight;
-                }
-            }
+                        const glowLight = new THREE.PointLight(0xff0000, 2, 5, 1);
+                        glowLight.position.set(10, 0, 10);
+                        child.add(glowLight);
 
-            if (child.isMesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
+                        this.lights.sphere.glowLight = glowLight;
+                    }
 
-                if (child.name && /^Flower[1-4]$/.test(child.name)) {
-                    this.flowers.push({ mesh: child, initialRotation: child.rotation.clone() });
-                }
-                if (child.name && /^Stem[1-4]$/.test(child.name)) {
-                    this.stems.push({ mesh: child, initialRotation: child.rotation.clone() });
-                }
+                    child.castShadow = true;
+                    child.receiveShadow = true;
 
-                if (child.name === 'Image1') {
-                    child.material = new THREE.MeshStandardMaterial({
-                        map: texture1,
-                        side: THREE.DoubleSide
-                    });
-                }
-                if (child.name === 'Image2') {
-                    child.material = new THREE.MeshStandardMaterial({
-                        map: texture2,
-                        side: THREE.DoubleSide
-                    });
-                }
+                    if (child.name && /^Flower[1-4]$/.test(child.name)) {
+                        this.flowers.push({ mesh: child, initialRotation: child.rotation.clone() });
+                    }
+                    if (child.name && /^Stem[1-4]$/.test(child.name)) {
+                        this.stems.push({ mesh: child, initialRotation: child.rotation.clone() });
+                    }
 
-                if (child.name && child.name.startsWith('Plane')) {
-                    const worldPos = new THREE.Vector3();
-                    child.getWorldPosition(worldPos);
-                    planeMeshes.push({ mesh: child, position: worldPos });
+                    if (child.name === 'Image1') {
+                        child.material = new THREE.MeshStandardMaterial({
+                            map: texture1,
+                            side: THREE.DoubleSide
+                        });
+                    }
+                    if (child.name === 'Image2') {
+                        child.material = new THREE.MeshStandardMaterial({
+                            map: texture2,
+                            side: THREE.DoubleSide
+                        });
+                    }
+
+                    if (child.name && child.name.startsWith('Plane')) {
+                        const worldPos = new THREE.Vector3();
+                        child.getWorldPosition(worldPos);
+                        planeMeshes.push({ mesh: child, position: worldPos });
+                    }
                 }
             }
         });
@@ -367,6 +376,7 @@ class App {
         planeMeshes.sort((a, b) => b.position.y - a.position.y);
 
         this.updateClockHands();
+        this.updateTheme();
     }
 
     updateClockHands() {
