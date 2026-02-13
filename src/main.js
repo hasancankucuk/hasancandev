@@ -170,7 +170,7 @@ function onClick(event) {
 window.addEventListener('click', onClick);
 
 loader.load(
-    'https://media.githubusercontent.com/media/hasancankucuk/hasancandev/main/lfs_assets/hasancandev.glb',
+    import.meta.env.VITE_LFS_URL,
     (gltf) => {
         model = gltf.scene;
 
