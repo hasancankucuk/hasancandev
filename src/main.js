@@ -5,13 +5,24 @@ import './style.css';
 
 const CONFIG = {
     colors: {
-        background: 0xD8D8E8,
-        fog: 0xD8D8E8,
-        ground: 0xffffff,
-        hemisphereSky: 0xebf4ff,
-        hemisphereGround: 0xffffff,
-        sun: 0xffeeb1,
-        ambient: 0xffffff
+        dark: {
+            background: 0x454560,
+            fog: 0x454560,
+            ground: 0x505070,
+            hemisphereSky: 0x606080,
+            hemisphereGround: 0x454560,
+            sun: 0xffeeb1,
+            ambient: 0x606080
+        },
+        light: {
+            background: 0xD8D8E8,
+            fog: 0xD8D8E8,
+            ground: 0xffffff,
+            hemisphereSky: 0xebf4ff,
+            hemisphereGround: 0xffffff,
+            sun: 0xffeeb1,
+            ambient: 0xffffff
+        }
     },
     camera: {
         fov: 75,
@@ -29,7 +40,7 @@ const CONFIG = {
         linkedin: import.meta.env.VITE_LINKEDIN,
         github: import.meta.env.VITE_GITHUB,
         cv: import.meta.env.VITE_CV,
-        model: import.meta.env.VITE_LFS_URL
+        model: import.meta.env.VITE_LFS_URL || 'https://media.githubusercontent.com/media/hasancankucuk/hasancandev/main/lfs_assets/hasancandev.glb'
     },
     loadingMessages: [
         "Tidying up the table...",
@@ -49,6 +60,7 @@ class App {
         this.loadingMessage = document.getElementById('loading-message');
         this.progressFill = document.getElementById('progress-fill');
         this.progressText = document.getElementById('progress-text');
+        this.themeToggle = document.getElementById('checkbox');
 
         this.scene = null;
         this.camera = null;
@@ -70,6 +82,17 @@ class App {
             minute: null
         };
 
+        this.lights = {
+            hemisphere: null,
+            sun: null,
+            ambient: null,
+            sphere: null
+        };
+
+        this.groundMaterial = null;
+
+        this.isDarkMode = localStorage.getItem('theme') !== 'dark';
+
         this.init();
     }
 
@@ -82,6 +105,12 @@ class App {
         this.addGround();
         this.setupEvents();
 
+        if (this.themeToggle) {
+            this.themeToggle.checked = !this.isDarkMode;
+        }
+
+        this.updateTheme();
+
         this.loadAssets();
 
         this.animate();
@@ -89,8 +118,7 @@ class App {
 
     setupScene() {
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(CONFIG.colors.background);
-        this.scene.fog = new THREE.FogExp2(CONFIG.colors.fog, 0.05);
+        this.scene.fog = new THREE.FogExp2(0x000000, 0.05);
     }
 
     setupCamera() {
@@ -134,34 +162,30 @@ class App {
     }
 
     addLights() {
-        const hemisphereLight = new THREE.HemisphereLight(
-            CONFIG.colors.hemisphereSky,
-            CONFIG.colors.hemisphereGround,
-            0.6
-        );
-        this.scene.add(hemisphereLight);
+        this.lights.hemisphere = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
+        this.scene.add(this.lights.hemisphere);
 
-        const sunLight = new THREE.DirectionalLight(CONFIG.colors.sun, 2.5);
-        sunLight.position.set(5, 3, 5);
-        sunLight.castShadow = true;
-        sunLight.shadow.mapSize.width = CONFIG.shadows.mapSize;
-        sunLight.shadow.mapSize.height = CONFIG.shadows.mapSize;
-        sunLight.shadow.bias = CONFIG.shadows.bias;
-        sunLight.shadow.normalBias = CONFIG.shadows.normalBias;
-        this.scene.add(sunLight);
+        this.lights.sun = new THREE.DirectionalLight(CONFIG.colors.light.sun, 2.5);
+        this.lights.sun.position.set(5, 3, 5);
+        this.lights.sun.castShadow = true;
+        this.lights.sun.shadow.mapSize.width = CONFIG.shadows.mapSize;
+        this.lights.sun.shadow.mapSize.height = CONFIG.shadows.mapSize;
+        this.lights.sun.shadow.bias = CONFIG.shadows.bias;
+        this.lights.sun.shadow.normalBias = CONFIG.shadows.normalBias;
+        this.scene.add(this.lights.sun);
 
-        const ambientLight = new THREE.AmbientLight(CONFIG.colors.ambient, 0.3);
-        this.scene.add(ambientLight);
+        this.lights.ambient = new THREE.AmbientLight(0xffffff, 0.3);
+        this.scene.add(this.lights.ambient);
     }
 
     addGround() {
         const groundGeometry = new THREE.PlaneGeometry(20, 20, 100, 100);
-        const groundMaterial = new THREE.MeshStandardMaterial({
-            color: CONFIG.colors.ground,
+        this.groundMaterial = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
             side: THREE.FrontSide,
             roughness: 0.5,
         });
-        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        const ground = new THREE.Mesh(groundGeometry, this.groundMaterial);
         ground.rotation.x = -Math.PI / 2;
         ground.position.y = -1;
         ground.receiveShadow = true;
@@ -172,6 +196,57 @@ class App {
         window.addEventListener('resize', this.onResize.bind(this));
         window.addEventListener('mousemove', this.onMouseMove.bind(this));
         window.addEventListener('click', this.onClick.bind(this));
+
+        if (this.themeToggle) {
+            this.themeToggle.addEventListener('change', this.toggleTheme.bind(this));
+        }
+    }
+
+    toggleTheme() {
+        this.isDarkMode = !this.themeToggle.checked;
+        localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
+        this.updateTheme();
+    }
+
+    updateTheme() {
+        const colors = this.isDarkMode ? CONFIG.colors.dark : CONFIG.colors.light;
+
+        this.scene.background = new THREE.Color(colors.background);
+        this.scene.fog.color.setHex(colors.fog);
+
+        if (this.lights.hemisphere) {
+            this.lights.hemisphere.color.setHex(colors.hemisphereSky);
+            this.lights.hemisphere.groundColor.setHex(colors.hemisphereGround);
+        }
+        if (this.lights.ambient) {
+            this.lights.ambient.color.setHex(colors.ambient);
+        }
+
+        if (this.groundMaterial) {
+            this.groundMaterial.color.setHex(colors.ground);
+        }
+
+        if (this.isDarkMode) {
+            document.body.classList.remove('light-mode');
+        } else {
+            document.body.classList.add('light-mode');
+        }
+
+        if (this.sphereMesh) {
+            if (this.isDarkMode) {
+                this.sphereMesh.material.emissive.setHex(0xffaa33);
+                this.sphereMesh.material.emissiveIntensity = 0.5;
+                if (this.lights.sphere) {
+                    this.lights.sphere.intensity = 1;
+                }
+            } else {
+                this.sphereMesh.material.emissive.setHex(0x000000);
+                this.sphereMesh.material.emissiveIntensity = 0;
+                if (this.lights.sphere) {
+                    this.lights.sphere.intensity = 0;
+                }
+            }
+        }
     }
 
     loadAssets() {
@@ -245,9 +320,20 @@ class App {
                 }
                 if (lowerName === 'hourhand') this.clockHands.hour = child;
                 if (lowerName === 'minutehand') this.clockHands.minute = child;
+
+                if (child.name === 'Sphere001' || child.name === 'Sphere.001') {
+                    this.sphereMesh = child;
+
+                    const sphereLight = new THREE.PointLight(0xffaa33, 0, 8);
+                    sphereLight.distance = 1;
+                    sphereLight.decay = 1;
+                    child.add(sphereLight);
+                    this.lights.sphere = sphereLight;
+                }
             }
 
             if (child.isMesh) {
+                console.log(child.name)
                 child.castShadow = true;
                 child.receiveShadow = true;
 
@@ -263,6 +349,13 @@ class App {
                     }
                 }
 
+                if (child.name && /^Flower[1-4]$/.test(child.name)) {
+                    this.flowers.push({ mesh: child, initialRotation: child.rotation.clone() });
+                }
+                if (child.name && /^Stem[1-4]$/.test(child.name)) {
+                    this.stems.push({ mesh: child, initialRotation: child.rotation.clone() });
+                }
+
                 if (child.name === 'Image1') {
                     child.material = new THREE.MeshStandardMaterial({
                         map: texture1,
@@ -274,13 +367,6 @@ class App {
                         map: texture2,
                         side: THREE.DoubleSide
                     });
-                }
-
-                if (child.name && /^Flower[1-4]$/.test(child.name)) {
-                    this.flowers.push({ mesh: child, initialRotation: child.rotation.clone() });
-                }
-                if (child.name && /^Stem[1-4]$/.test(child.name)) {
-                    this.stems.push({ mesh: child, initialRotation: child.rotation.clone() });
                 }
 
                 if (child.name && child.name.startsWith('Plane')) {
@@ -408,6 +494,5 @@ class App {
         this.renderer.render(this.scene, this.camera);
     }
 }
-
 
 new App();
