@@ -40,7 +40,7 @@ const CONFIG = {
         linkedin: import.meta.env.VITE_LINKEDIN,
         github: import.meta.env.VITE_GITHUB,
         cv: import.meta.env.VITE_CV,
-        model: "./lfs_assets/hasancandev.glb" || 'https://media.githubusercontent.com/media/hasancankucuk/hasancandev/main/lfs_assets/hasancandev.glb'
+        model: import.meta.env.VITE_LFS_URL || 'https://media.githubusercontent.com/media/hasancankucuk/hasancandev/main/lfs_assets/hasancandev.glb'
     },
     loadingMessages: [
         "Tidying up the table...",
