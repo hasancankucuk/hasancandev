@@ -40,7 +40,7 @@ const CONFIG = {
         linkedin: import.meta.env.VITE_LINKEDIN,
         github: import.meta.env.VITE_GITHUB,
         cv: import.meta.env.VITE_CV,
-        model: import.meta.env.VITE_LFS_URL || 'https://media.githubusercontent.com/media/hasancankucuk/hasancandev/main/lfs_assets/hasancandev.glb'
+        model: "./lfs_assets/hasancandev.glb" || 'https://media.githubusercontent.com/media/hasancankucuk/hasancandev/main/lfs_assets/hasancandev.glb'
     },
     loadingMessages: [
         "Tidying up the table...",
@@ -76,6 +76,8 @@ class App {
         this.chairInitialRotation = null;
         this.chairRotationY = 0;
         this.isHoveringChair = false;
+        this.mixer = null;
+        this.catAnimations = [];
 
         this.clockHands = {
             hour: null,
@@ -94,7 +96,8 @@ class App {
 
         this.groundMaterial = null;
 
-        this.isDarkMode = localStorage.getItem('theme') !== 'light';
+        const hour = new Date().getHours();
+        this.isDarkMode = localStorage.getItem('theme') !== 'light' || hour >= 16 || hour <= 6;
 
         this.init();
     }
@@ -295,6 +298,7 @@ class App {
             (gltf) => {
                 this.model = gltf.scene;
                 this.processModel(this.model, devilEyeTexture, letItHappenTexture);
+                this.processCatAnimations(gltf);
                 this.scene.add(this.model);
             },
             undefined,
@@ -377,6 +381,21 @@ class App {
 
         this.updateClockHands();
         this.updateTheme();
+    }
+
+    processCatAnimations(gltf) {
+        if (gltf.animations && gltf.animations.length > 0) {
+            this.mixer = new THREE.AnimationMixer(gltf.scene);
+
+            // Play all animations
+            gltf.animations.forEach((clip) => {
+                const action = this.mixer.clipAction(clip);
+                action.timeScale = 0.25; // Slow down animation to 50% speed
+                action.play();
+                this.catAnimations.push(action);
+                console.log('Playing animation:', clip.name);
+            });
+        }
     }
 
     updateClockHands() {
@@ -464,6 +483,12 @@ class App {
         requestAnimationFrame(this.animate.bind(this));
 
         const time = Date.now() * 0.001;
+        const delta = 0.016; // ~60fps
+
+        // Update animation mixer
+        if (this.mixer) {
+            this.mixer.update(delta);
+        }
 
         this.flowers.forEach((flower, index) => {
             const offset = index * 0.5;
