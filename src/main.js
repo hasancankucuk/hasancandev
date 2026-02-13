@@ -333,21 +333,8 @@ class App {
             }
 
             if (child.isMesh) {
-                console.log(child.name)
                 child.castShadow = true;
                 child.receiveShadow = true;
-
-                if (child.material) {
-                    const materialName = child.material.name ? child.material.name.toLowerCase() : '';
-                    const objectName = child.name ? child.name.toLowerCase() : '';
-
-                    if (materialName.includes('wood') ||
-                        ['floor', 'table', 'desk', 'shelf', 'cabinet', 'drawer'].some(k => objectName.includes(k))) {
-                        child.material.roughness = 10.0;
-                        child.material.metalness = 0.0;
-                        child.material.needsUpdate = true;
-                    }
-                }
 
                 if (child.name && /^Flower[1-4]$/.test(child.name)) {
                     this.flowers.push({ mesh: child, initialRotation: child.rotation.clone() });
