@@ -3,214 +3,248 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './style.css';
 
-const scene = new THREE.Scene();
-const backgroundColor = 0xD8D8E8;
-scene.background = new THREE.Color(backgroundColor);
-scene.fog = new THREE.FogExp2(backgroundColor, 0.05);
+const CONFIG = {
+    colors: {
+        background: 0xD8D8E8,
+        fog: 0xD8D8E8,
+        ground: 0xffffff,
+        hemisphereSky: 0xebf4ff,
+        hemisphereGround: 0xffffff,
+        sun: 0xffeeb1,
+        ambient: 0xffffff
+    },
+    camera: {
+        fov: 75,
+        near: 0.1,
+        far: 1000,
+        position: new THREE.Vector3(1, 0.5, 1)
+    },
+    shadows: {
+        mapSize: 1024,
+        bias: -0.00001,
+        normalBias: 0.02
+    },
+    urls: {
+        mail: import.meta.env.VITE_MAIL,
+        linkedin: import.meta.env.VITE_LINKEDIN,
+        github: import.meta.env.VITE_GITHUB,
+        cv: import.meta.env.VITE_CV,
+        model: import.meta.env.VITE_LFS_URL
+    },
+    loadingMessages: [
+        "Tidying up the table...",
+        "Throwing out the trash...",
+        "Arranging the books...",
+        "Feeding the cats...",
+        "Applying final touches...",
+        "Brewing coffee...",
+        "Dusting off the shelves..."
+    ]
+};
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(1, 0.5, 1);
-camera.lookAt(0, 0, 0);
+class App {
+    constructor() {
+        this.container = document.getElementById('canvas-container');
+        this.loadingScreen = document.getElementById('loading-screen');
+        this.loadingMessage = document.getElementById('loading-message');
+        this.progressFill = document.getElementById('progress-fill');
+        this.progressText = document.getElementById('progress-text');
 
-const renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: true
-});
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.controls = null;
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
 
-const container = document.getElementById('canvas-container');
-container.appendChild(renderer.domElement);
+        this.model = null;
+        this.flowers = [];
+        this.stems = [];
+        this.chairGroup = null;
+        this.chairInitialRotation = null;
+        this.chairRotationY = 0;
+        this.isHoveringChair = false;
 
+        this.clockHands = {
+            hour: null,
+            minute: null
+        };
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
-controls.minDistance = 1;
-controls.maxDistance = 5;
-controls.minAzimuthAngle = -Math.PI / 10;
-controls.maxAzimuthAngle = Math.PI / 2.5;
-controls.minPolarAngle = Math.PI / 4;
-controls.maxPolarAngle = Math.PI / 2;
-controls.autoRotate = false;
-controls.autoRotateSpeed = 0.2;
-
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-function onMouseMove(event) {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-}
-
-window.addEventListener('mousemove', onMouseMove);
-
-const hemisphereLight = new THREE.HemisphereLight(
-    0xebf4ff,
-    0xffffff,
-    0.6
-);
-scene.add(hemisphereLight);
-
-const sunLight = new THREE.DirectionalLight(0xffeeb1, 2.5);
-sunLight.position.set(5, 3, 5);
-sunLight.castShadow = true;
-
-sunLight.shadow.mapSize.width = 1024;
-sunLight.shadow.mapSize.height = 1024;
-sunLight.shadow.bias = -0.00001;
-sunLight.shadow.normalBias = 0.02;
-scene.add(sunLight);
-
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-scene.add(ambientLight);
-
-
-const groundGeometry = new THREE.PlaneGeometry(20, 20, 100, 100);
-const groundMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    side: THREE.FrontSide,
-    roughness: 0.5,
-
-});
-const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-ground.rotation.x = -Math.PI / 2;
-ground.position.y = -1;
-ground.receiveShadow = true;
-scene.add(ground);
-
-const loadingManager = new THREE.LoadingManager();
-const progressFill = document.getElementById('progress-fill');
-const progressText = document.getElementById('progress-text');
-const loadingScreen = document.getElementById('loading-screen');
-const loadingMessage = document.getElementById('loading-message');
-
-const loadingMessages = [
-    "Tidying up the table...",
-    "Throwing out the trash...",
-    "Arranging the books...",
-    "Feeding the cats...",
-    "Applying final touches...",
-    "Brewing coffee...",
-    "Dusting off the shelves..."
-];
-
-let messageIndex = 0;
-const messageInterval = setInterval(() => {
-    messageIndex = (messageIndex + 1) % loadingMessages.length;
-    if (loadingMessage) {
-        loadingMessage.textContent = loadingMessages[messageIndex];
+        this.init();
     }
-}, 2000);
 
-loadingManager.onProgress = (url, loaded, total) => {
-    const progress = (loaded / total) * 100;
-    progressFill.style.width = `${progress}%`;
-    progressText.textContent = `${Math.round(progress)}%`;
-};
+    init() {
+        this.setupScene();
+        this.setupCamera();
+        this.setupRenderer();
+        this.setupControls();
+        this.addLights();
+        this.addGround();
+        this.setupEvents();
 
-loadingManager.onLoad = () => {
-    setTimeout(() => {
-        loadingScreen.classList.add('hidden');
-        clearInterval(messageInterval);
-    }, 500);
-};
+        this.loadAssets();
 
-loadingManager.onError = (url) => {
-    progressText.textContent = 'Error loading model';
-};
+        this.animate();
+    }
 
-const loader = new GLTFLoader(loadingManager);
-let model = null;
+    setupScene() {
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(CONFIG.colors.background);
+        this.scene.fog = new THREE.FogExp2(CONFIG.colors.fog, 0.05);
+    }
 
-const flowers = [];
-const stems = [];
+    setupCamera() {
+        this.camera = new THREE.PerspectiveCamera(
+            CONFIG.camera.fov,
+            window.innerWidth / window.innerHeight,
+            CONFIG.camera.near,
+            CONFIG.camera.far
+        );
+        this.camera.position.copy(CONFIG.camera.position);
+        this.camera.lookAt(0, 0, 0);
+    }
 
-let chairGroup = null;
-let chairInitialRotation = null;
-let isHoveringChair = false;
-let chairRotationY = 0;
+    setupRenderer() {
+        this.renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true
+        });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 1.2;
 
-let clockObject = null;
-let hourHand = null;
-let minuteHand = null;
-let hourHandInitialRotation = null;
-let minuteHandInitialRotation = null;
+        this.container.appendChild(this.renderer.domElement);
+    }
 
-function onClick(event) {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    setupControls() {
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.05;
+        this.controls.minDistance = 1;
+        this.controls.maxDistance = 5;
+        this.controls.minAzimuthAngle = -Math.PI / 10;
+        this.controls.maxAzimuthAngle = Math.PI / 2.5;
+        this.controls.minPolarAngle = Math.PI / 4;
+        this.controls.maxPolarAngle = Math.PI / 2;
+        this.controls.autoRotate = false;
+        this.controls.autoRotateSpeed = 0.2;
+    }
 
-    raycaster.setFromCamera(mouse, camera);
+    addLights() {
+        const hemisphereLight = new THREE.HemisphereLight(
+            CONFIG.colors.hemisphereSky,
+            CONFIG.colors.hemisphereGround,
+            0.6
+        );
+        this.scene.add(hemisphereLight);
 
-    if (model) {
-        const intersects = raycaster.intersectObjects(model.children, true);
+        const sunLight = new THREE.DirectionalLight(CONFIG.colors.sun, 2.5);
+        sunLight.position.set(5, 3, 5);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = CONFIG.shadows.mapSize;
+        sunLight.shadow.mapSize.height = CONFIG.shadows.mapSize;
+        sunLight.shadow.bias = CONFIG.shadows.bias;
+        sunLight.shadow.normalBias = CONFIG.shadows.normalBias;
+        this.scene.add(sunLight);
 
-        if (intersects.length > 0) {
-            const clickedObject = intersects[0].object;
-            console.log(clickedObject);
+        const ambientLight = new THREE.AmbientLight(CONFIG.colors.ambient, 0.3);
+        this.scene.add(ambientLight);
+    }
 
-            if (clickedObject.name && clickedObject.name.toLowerCase().includes('mail')) {
-                window.location.href = import.meta.env.VITE_MAIL;
-            } else if (clickedObject.name && clickedObject.name.toLowerCase().includes('linkedin')) {
-                window.open(import.meta.env.VITE_LINKEDIN, '_blank');
-            } else if (clickedObject.name && clickedObject.name.toLowerCase().includes('github')) {
-                window.open(import.meta.env.VITE_GITHUB, '_blank');
-            } else if (clickedObject.name && clickedObject.name.toLowerCase().includes('cv')) {
-                window.open(import.meta.env.VITE_CV, '_blank');
+    addGround() {
+        const groundGeometry = new THREE.PlaneGeometry(20, 20, 100, 100);
+        const groundMaterial = new THREE.MeshStandardMaterial({
+            color: CONFIG.colors.ground,
+            side: THREE.FrontSide,
+            roughness: 0.5,
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -1;
+        ground.receiveShadow = true;
+        this.scene.add(ground);
+    }
+
+    setupEvents() {
+        window.addEventListener('resize', this.onResize.bind(this));
+        window.addEventListener('mousemove', this.onMouseMove.bind(this));
+        window.addEventListener('click', this.onClick.bind(this));
+    }
+
+    loadAssets() {
+        const loadingManager = new THREE.LoadingManager();
+
+        let messageIndex = 0;
+        const messageInterval = setInterval(() => {
+            messageIndex = (messageIndex + 1) % CONFIG.loadingMessages.length;
+            if (this.loadingMessage) {
+                this.loadingMessage.textContent = CONFIG.loadingMessages[messageIndex];
             }
-        }
-    }
-}
+        }, 2000);
 
-window.addEventListener('click', onClick);
+        loadingManager.onProgress = (url, loaded, total) => {
+            const progress = (loaded / total) * 100;
+            if (this.progressFill) this.progressFill.style.width = `${progress}%`;
+            if (this.progressText) this.progressText.textContent = `${Math.round(progress)}%`;
+        };
 
-loader.load(
-    import.meta.env.VITE_LFS_URL,
-    (gltf) => {
-        model = gltf.scene;
+        loadingManager.onLoad = () => {
+            setTimeout(() => {
+                if (this.loadingScreen) this.loadingScreen.classList.add('hidden');
+                clearInterval(messageInterval);
+            }, 500);
+        };
 
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
+        loadingManager.onError = (url) => {
+            if (this.progressText) this.progressText.textContent = 'Error loading model';
+            console.error('Error loading:', url);
+        };
 
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const scale = 2 / maxDim;
-        model.scale.setScalar(scale);
-
-        model.position.x = -center.x * scale;
-        model.position.z = -center.z * scale;
-        model.position.y = -box.min.y * scale - 1;
-        let lightsFound = 0;
-        const textureLoader = new THREE.TextureLoader();
+        const loader = new GLTFLoader(loadingManager);
+        const textureLoader = new THREE.TextureLoader(loadingManager);
 
         const devilEyeTexture = textureLoader.load('/devil_eye.jpg');
         const letItHappenTexture = textureLoader.load('/let_it_happen.jpg');
+        devilEyeTexture.colorSpace = THREE.SRGBColorSpace;
+        letItHappenTexture.colorSpace = THREE.SRGBColorSpace;
+        loader.load(
+            CONFIG.urls.model,
+            (gltf) => {
+                this.model = gltf.scene;
+                this.processModel(this.model, devilEyeTexture, letItHappenTexture);
+                this.scene.add(this.model);
+            },
+            undefined,
+            (error) => console.error('Error loading GLB model:', error)
+        );
+    }
+
+    processModel(model, texture1, texture2) {
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 2 / maxDim;
+
+        model.scale.setScalar(scale);
+        model.position.x = -center.x * scale;
+        model.position.z = -center.z * scale;
+        model.position.y = -box.min.y * scale - 1;
 
         const planeMeshes = [];
 
         model.traverse((child) => {
             if (child.name) {
-                if (child.name.toLowerCase() === 'chair') {
-                    chairGroup = child;
-                    chairInitialRotation = child.rotation.clone();
+                const lowerName = child.name.toLowerCase();
+                if (lowerName === 'chair') {
+                    this.chairGroup = child;
+                    this.chairInitialRotation = child.rotation.clone();
                 }
-
-                if (child.name.toLowerCase() === 'clock') {
-                    clockObject = child;
-                }
-                if (child.name.toLowerCase() === 'hourhand') {
-                    hourHand = child;
-                    hourHandInitialRotation = child.rotation.clone();
-                }
-                if (child.name.toLowerCase() === 'minutehand') {
-                    minuteHand = child;
-                    minuteHandInitialRotation = child.rotation.clone();
-                }
+                if (lowerName === 'hourhand') this.clockHands.hour = child;
+                if (lowerName === 'minutehand') this.clockHands.minute = child;
             }
 
             if (child.isMesh) {
@@ -222,34 +256,31 @@ loader.load(
                     const objectName = child.name ? child.name.toLowerCase() : '';
 
                     if (materialName.includes('wood') ||
-                        objectName.includes('floor') ||
-                        objectName.includes('table') ||
-                        objectName.includes('desk') ||
-                        objectName.includes('shelf') ||
-                        objectName.includes('cabinet') ||
-                        objectName.includes('drawer')) {
-
+                        ['floor', 'table', 'desk', 'shelf', 'cabinet', 'drawer'].some(k => objectName.includes(k))) {
                         child.material.roughness = 10.0;
                         child.material.metalness = 0.0;
                         child.material.needsUpdate = true;
                     }
                 }
 
-                if (child.name) {
-                    console.log(child.name)
-                    if (child.name === 'Image1') {
-                        child.material = new THREE.MeshStandardMaterial({
-                            map: devilEyeTexture,
-                            side: THREE.DoubleSide
-                        });
-                    }
+                if (child.name === 'Image1') {
+                    child.material = new THREE.MeshStandardMaterial({
+                        map: texture1,
+                        side: THREE.DoubleSide
+                    });
+                }
+                if (child.name === 'Image2') {
+                    child.material = new THREE.MeshStandardMaterial({
+                        map: texture2,
+                        side: THREE.DoubleSide
+                    });
+                }
 
-                    if (child.name === 'Image2') {
-                        child.material = new THREE.MeshStandardMaterial({
-                            map: letItHappenTexture,
-                            side: THREE.DoubleSide
-                        });
-                    }
+                if (child.name && /^Flower[1-4]$/.test(child.name)) {
+                    this.flowers.push({ mesh: child, initialRotation: child.rotation.clone() });
+                }
+                if (child.name && /^Stem[1-4]$/.test(child.name)) {
+                    this.stems.push({ mesh: child, initialRotation: child.rotation.clone() });
                 }
 
                 if (child.name && child.name.startsWith('Plane')) {
@@ -257,138 +288,126 @@ loader.load(
                     child.getWorldPosition(worldPos);
                     planeMeshes.push({ mesh: child, position: worldPos });
                 }
-
-                if (child.name && /^Flower[1-4]$/.test(child.name)) {
-                    flowers.push({
-                        mesh: child,
-                        initialRotation: child.rotation.clone()
-                    });
-                }
-
-                if (child.name && /^Stem[1-4]$/.test(child.name)) {
-                    stems.push({
-                        mesh: child,
-                        initialRotation: child.rotation.clone()
-                    });
-                }
-
-                if (child.material) {
-                    child.material.needsUpdate = true;
-                }
-            }
-
-            if (child.isLight) {
-                lightsFound++;
             }
         });
 
         planeMeshes.sort((a, b) => b.position.y - a.position.y);
-        updateClockHands();
-        scene.add(model);
-    },
-    (progress) => {
-        // console.log(`Loading: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
-    },
-    (error) => {
-        console.error('Error loading GLB model:', error);
+
+        this.updateClockHands();
     }
-);
 
-function updateClockHands() {
-    if (!hourHand || !minuteHand) return;
+    updateClockHands() {
+        if (!this.clockHands.hour || !this.clockHands.minute) return;
 
-    const now = new Date();
-    let hours = now.getHours();
-    if (hours === 0) hours = 12;
-    const minutes = now.getMinutes();
+        const now = new Date();
+        let hours = now.getHours();
+        if (hours === 0) hours = 12;
+        const minutes = now.getMinutes();
 
-    const minuteAngle = (minutes * 6)
-    const hourAngle = ((hours % 12) * 30) + (minutes * 0.5);
+        const minuteAngle = (minutes * 6);
+        const hourAngle = ((hours % 12) * 30) + (minutes * 0.5);
+        const DEG_TO_RAD = Math.PI / 180;
 
-    const DEG_TO_RAD = Math.PI / 180;
+        this.clockHands.minute.rotation.x = -(minuteAngle * DEG_TO_RAD);
+        this.clockHands.hour.rotation.x = -(hourAngle * DEG_TO_RAD);
+    }
 
-    minuteHand.rotation.x = -(minuteAngle * DEG_TO_RAD);
-    hourHand.rotation.x = -(hourAngle * DEG_TO_RAD);
-}
+    onResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    }
 
-function animate() {
-    requestAnimationFrame(animate);
+    onMouseMove(event) {
+        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    }
 
-    const time = Date.now() * 0.001;
-    flowers.forEach((flower, index) => {
-        const offset = index * 0.5;
-        const swayX = Math.sin(time * 0.8 + offset) * 0.2;
-        const swayZ = Math.cos(time * 0.6 + offset) * 0.15;
+    onClick() {
+        if (!this.model) return;
 
-        flower.mesh.rotation.x = flower.initialRotation.x + swayX;
-        flower.mesh.rotation.z = flower.initialRotation.z + swayZ;
-    });
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        const intersects = this.raycaster.intersectObjects(this.model.children, true);
 
-
-    stems.forEach((stem, index) => {
-        const offset = index * 0.7;
-        const swayX = Math.sin(time * 0.7 + offset) * 0.18;
-        const swayZ = Math.cos(time * 0.5 + offset) * 0.12;
-
-        stem.mesh.rotation.x = stem.initialRotation.x + swayX;
-        stem.mesh.rotation.z = stem.initialRotation.z + swayZ;
-    });
-
-    updateClockHands();
-
-    if (model) {
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(model.children, true);
-
-        isHoveringChair = false;
         if (intersects.length > 0) {
-            const hoveredObject = intersects[0].object;
+            const object = intersects[0].object;
+            const name = object.name ? object.name.toLowerCase() : '';
 
-            let isChairPart = false;
-
-            if (chairGroup) {
-                let obj = hoveredObject;
-                while (obj) {
-                    if (obj === chairGroup) {
-                        isChairPart = true;
-                        break;
-                    }
-                    obj = obj.parent;
-                }
-            }
-
-            if (isChairPart) {
-                isHoveringChair = true;
-                document.body.style.cursor = 'pointer';
-            } else if (hoveredObject.name &&
-                (hoveredObject.name.toLowerCase().includes('mail') ||
-                    hoveredObject.name.toLowerCase().includes('linkedin') ||
-                    hoveredObject.name.toLowerCase().includes('github'))) {
-                document.body.style.cursor = 'pointer';
-            } else {
-                document.body.style.cursor = 'default';
-            }
-        } else {
-            document.body.style.cursor = 'default';
+            if (name.includes('mail')) window.location.href = CONFIG.urls.mail;
+            else if (name.includes('linkedin')) window.open(CONFIG.urls.linkedin, '_blank');
+            else if (name.includes('github')) window.open(CONFIG.urls.github, '_blank');
+            else if (name.includes('cv')) window.open(CONFIG.urls.cv, '_blank');
         }
     }
 
-    if (chairGroup && chairInitialRotation) {
-        const targetRotation = isHoveringChair ? Math.PI * 2 : 0;
-        chairRotationY += (targetRotation - chairRotationY) * 0.05;
-        chairGroup.rotation.y = chairInitialRotation.y + chairRotationY;
+    handleHover() {
+        if (!this.model) return;
+
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        const intersects = this.raycaster.intersectObjects(this.model.children, true);
+
+        this.isHoveringChair = false;
+        let cursor = 'default';
+
+        if (intersects.length > 0) {
+            const object = intersects[0].object;
+
+            let isChairPart = false;
+            let obj = object;
+            while (obj) {
+                if (obj === this.chairGroup) {
+                    isChairPart = true;
+                    break;
+                }
+                obj = obj.parent;
+            }
+
+            if (isChairPart) {
+                this.isHoveringChair = true;
+                cursor = 'pointer';
+            }
+
+            const name = object.name ? object.name.toLowerCase() : '';
+            if (name.includes('mail') || name.includes('linkedin') || name.includes('github')) {
+                cursor = 'pointer';
+            }
+        }
+
+        document.body.style.cursor = cursor;
     }
 
-    controls.update();
-    renderer.render(scene, camera);
+    animate() {
+        requestAnimationFrame(this.animate.bind(this));
 
+        const time = Date.now() * 0.001;
+
+        this.flowers.forEach((flower, index) => {
+            const offset = index * 0.5;
+            flower.mesh.rotation.x = flower.initialRotation.x + Math.sin(time * 0.8 + offset) * 0.2;
+            flower.mesh.rotation.z = flower.initialRotation.z + Math.cos(time * 0.6 + offset) * 0.15;
+        });
+
+
+        this.stems.forEach((stem, index) => {
+            const offset = index * 0.7;
+            stem.mesh.rotation.x = stem.initialRotation.x + Math.sin(time * 0.7 + offset) * 0.18;
+            stem.mesh.rotation.z = stem.initialRotation.z + Math.cos(time * 0.5 + offset) * 0.12;
+        });
+
+        this.updateClockHands();
+
+        this.handleHover();
+        if (this.chairGroup && this.chairInitialRotation) {
+            const targetRotation = this.isHoveringChair ? Math.PI * 2 : 0;
+            this.chairRotationY += (targetRotation - this.chairRotationY) * 0.05;
+            this.chairGroup.rotation.y = this.chairInitialRotation.y + this.chairRotationY;
+        }
+
+        this.controls.update();
+        this.renderer.render(this.scene, this.camera);
+    }
 }
 
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-});
 
-animate();
+new App();
