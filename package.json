@@ -1,7 +1,7 @@
 {
     "name": "hasancandev-portfolio",
     "version": "1.0.0",
-    "description": "Interactive 3D portfolio website with Three.js",
+    "description": "Hasan Can Küçük's portfolio",
     "type": "module",
     "scripts": {
         "dev": "vite",
